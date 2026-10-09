@@ -1,3 +1,3 @@
 
 
-const API_URL = 'https://learnhub-fyp-hunarmand-punjab.onrender.com/api'
+export const API_URL = 'https://learnhub-fyp-hunarmand-punjab.onrender.com/api'
