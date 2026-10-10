@@ -85,4 +85,29 @@ export const logoutUser = async () => {
 
 
 
+// GET ME
+export const getCurrentUser = async () => {
+    const token = await authStorage.getToken();
 
+    if (!token) {
+        throw new Error('Please log in first.');
+    }
+
+
+    const res = await fetch(`${API_URL}/auth/Getme`, {
+        method: "GET",
+        headers: {
+            Accept: 'application/json',
+            Cookie: `jwt-token=${token}`,
+        },
+
+    });
+
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch user.');
+    }
+    return data.user;
+};

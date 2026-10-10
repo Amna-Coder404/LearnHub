@@ -13,6 +13,7 @@ const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
+    const [showError, setShowError] = useState("");
     const [loading, setLoading] = useState(false);
 
     const router = useRouter();
@@ -22,7 +23,7 @@ const Login = () => {
         clearError();
 
         if (!username.trim() || !password) {
-            showError('Username and password are required.');
+            setShowError('Username and password are required.');
             return;
         }
 
@@ -49,7 +50,7 @@ const Login = () => {
                 placeholder='Enter Email'
                 style={{ borderWidth: 1, borderBottomColor: "black" }}
                 value={username}
-                onChangeText={(value) => { serUsername(value); clearError(); }}
+                onChangeText={(value) => { setUsername(value); clearError(); }}
             />
 
 
@@ -62,8 +63,16 @@ const Login = () => {
                     clearError();
                 }}
             />
-            {error && <Text>{error}</Text>}
-            <Button onPress={submit}>{loading ? "loading..." : "Submit"}</Button>
+            {error && <Text>{error || showError}</Text>}
+            <Button mode='contained' onPress={submit}>{loading ? "loading..." : "Submit"}</Button>
+
+
+            <Button
+                onPress={() => router.push("/forgotPassword")}
+                textColor="red"
+            >
+                Forgot Password?
+            </Button>
         </View>
     )
 }

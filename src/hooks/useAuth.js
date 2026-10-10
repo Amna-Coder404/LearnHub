@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { loginAuth, logoutUser, verifyOtp } from "../services/authServices";
+import { getCurrentUser, loginAuth, logoutUser, verifyOtp } from "../services/authServices";
 
 
 
@@ -9,6 +9,8 @@ export const useAuth = () => {
     const [error, setError] = useState('');
 
     const router = useRouter();
+    const clearError = () => setError(null);
+
 
     // Login (role by defualt service ma add ho gay ga--->Student ka)
     const login = async (username, password) => {
@@ -43,7 +45,19 @@ export const useAuth = () => {
         }
 
     }
-    const clearError = () => setError(null);
+
+
+    // Get me
+    const getMeInfo = async () => {
+        clearError();
+        try {
+            return await getCurrentUser();
+        } catch (err) {
+            setError(err.message || 'Failed to fetch user.');
+            throw err;
+        }
+    }
+
 
     return {
         login,
@@ -51,7 +65,8 @@ export const useAuth = () => {
         logout,
         error,
         clearError,
-        setError
+        setError,
+        getMeInfo
     }
 
 }
