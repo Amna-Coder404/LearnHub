@@ -1,5 +1,11 @@
+
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { MotiView } from "moti";
+import { Pressable, Text, View } from "react-native";
+
+import COLORS from "../constants/color";
+import styles from "../styles/CourseCard.style";
 
 const CourseCard = ({ enrollment }) => {
     const router = useRouter();
@@ -21,10 +27,13 @@ const CourseCard = ({ enrollment }) => {
         Math.max(0, Number(enrollment?.progress) || 0)
     );
 
+    const status = enrollment?.status || "Unknown";
+
     // Use the actual course ID, not the enrollment ID.
-    const courseId = typeof enrollment?.course === "object"
-        ? enrollment.course?._id
-        : enrollment?.course;
+    const courseId =
+        typeof enrollment?.course === "object"
+            ? enrollment.course?._id
+            : enrollment?.course;
 
     const openCourse = () => {
         if (!courseId) {
@@ -39,157 +48,95 @@ const CourseCard = ({ enrollment }) => {
     };
 
     return (
-        <Pressable
-            onPress={openCourse}
-            style={({ pressed }) => [
-                styles.card,
-                pressed && styles.pressed,
-            ]}
+        <MotiView
+            from={{
+                opacity: 0,
+                translateY: 25,
+                scale: 0.97,
+            }}
+            animate={{
+                opacity: 1,
+                translateY: 0,
+                scale: 1,
+            }}
+            transition={{
+                type: "timing",
+                duration: 400,
+            }}
         >
-            <View style={styles.header}>
-                <View style={styles.icon}>
-                    <Text style={styles.iconText}>C</Text>
+            <Pressable
+                onPress={openCourse}
+                style={({ pressed }) => [
+                    styles.card,
+                    pressed && styles.pressed,
+                ]}
+            >
+                <View style={styles.header}>
+                    <View style={styles.icon}>
+                        <Text style={styles.iconText}>
+                            {title.charAt(0).toUpperCase()}
+                        </Text>
+                    </View>
+
+                    <View style={styles.details}>
+                        <View style={styles.titleRow}>
+                            <Text style={styles.title} numberOfLines={2}>
+                                {title}
+                            </Text>
+
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>
+                                    {status}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <Text
+                            style={styles.description}
+                            numberOfLines={2}
+                        >
+                            {description}
+                        </Text>
+                    </View>
                 </View>
 
-                <View style={styles.details}>
-                    <Text style={styles.title} numberOfLines={2}>
-                        {title}
-                    </Text>
+                <View style={styles.progressBox}>
+                    <View style={styles.progressHeader}>
+                        <Text style={styles.label}>
+                            Course progress
+                        </Text>
 
-                    <Text style={styles.description} numberOfLines={2}>
-                        {description}
-                    </Text>
+                        <Text style={styles.progressText}>
+                            {progress}%
+                        </Text>
+                    </View>
+
+                    <View style={styles.progressTrack}>
+                        <View
+                            style={[
+                                styles.progressFill,
+                                { width: `${progress}%` },
+                            ]}
+                        />
+                    </View>
                 </View>
-            </View>
 
-            <View style={styles.divider} />
+                <View style={styles.footer}>
+                    <Text style={styles.viewCourse}>
+                        View Course Details
+                    </Text>
 
-            <View style={styles.infoRow}>
-                <Text style={styles.label}>Status</Text>
-
-                <Text style={styles.status}>
-                    {enrollment?.status || "Unknown"}
-                </Text>
-            </View>
-
-            <View style={styles.progressHeader}>
-                <Text style={styles.label}>Course progress</Text>
-                <Text style={styles.progressText}>{progress}%</Text>
-            </View>
-
-            <View style={styles.progressTrack}>
-                <View
-                    style={[
-                        styles.progressFill,
-                        { width: `${progress}%` },
-                    ]}
-                />
-            </View>
-
-            <Text style={styles.viewCourse}>
-                View Course Details →
-            </Text>
-        </Pressable>
+                    <View style={styles.arrowCircle}>
+                        <Ionicons
+                            name="arrow-forward"
+                            size={16}
+                            color={COLORS.primary}
+                        />
+                    </View>
+                </View>
+            </Pressable>
+        </MotiView>
     );
 };
 
 export default CourseCard;
-
-const styles = StyleSheet.create({
-    card: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 14,
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-    },
-    pressed: {
-        opacity: 0.75,
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-    },
-    icon: {
-        width: 52,
-        height: 52,
-        borderRadius: 14,
-        backgroundColor: "#E8F5E9",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    iconText: {
-        color: "#16803D",
-        fontSize: 22,
-        fontWeight: "700",
-    },
-    details: {
-        flex: 1,
-    },
-    title: {
-        color: "#111827",
-        fontSize: 16,
-        fontWeight: "700",
-    },
-    description: {
-        color: "#6B7280",
-        fontSize: 13,
-        marginTop: 5,
-        lineHeight: 19,
-    },
-    divider: {
-        height: 1,
-        backgroundColor: "#E5E7EB",
-        marginVertical: 16,
-    },
-    infoRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 14,
-    },
-    label: {
-        color: "#6B7280",
-        fontSize: 13,
-    },
-    status: {
-        color: "#16803D",
-        backgroundColor: "#E8F5E9",
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 20,
-        fontSize: 12,
-        fontWeight: "600",
-        textTransform: "capitalize",
-    },
-    progressHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 8,
-    },
-    progressText: {
-        color: "#111827",
-        fontSize: 13,
-        fontWeight: "600",
-    },
-    progressTrack: {
-        height: 7,
-        backgroundColor: "#E5E7EB",
-        borderRadius: 10,
-        overflow: "hidden",
-    },
-    progressFill: {
-        height: "100%",
-        backgroundColor: "#16A34A",
-        borderRadius: 10,
-    },
-    viewCourse: {
-        color: "#16803D",
-        fontSize: 14,
-        fontWeight: "600",
-        marginTop: 16,
-        textAlign: "right",
-    },
-});

@@ -1,73 +1,50 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-    Alert,
     ScrollView,
-    StyleSheet,
     Text,
+    TouchableOpacity,
+    useWindowDimensions,
     View,
 } from "react-native";
 
-import AssignmentList from "../../components/AssignmentList";
+import { Ionicons } from "@expo/vector-icons";
+import CourseAssignmentsPage from "../../components/CourseAssignmentsPage";
+import CourseDetailsPage from "../../components/CourseDetailsPage";
 import Loader from "../../components/Loader";
-import SubmitAssignmentModel from "../../components/SubmitAssignmentModel";
+import COLORS from "../../constants/color";
 import { useCourses } from "../../hooks/useCourses";
+import styles from "../../styles/SingleCourse.style";
+
+
+const TABS = ["Details", "Assignments"];
 
 const SingleCourse = () => {
     const { id } = useLocalSearchParams();
-    const router = useRouter();
+    const { width } = useWindowDimensions();
+    const pagerRef = useRef(null);
+    const [activeTab, setActiveTab] = useState(0);
 
-    const {
-        course,
-        loading, error,
-        fetchSingleCourse,
-        getAssignmentById,
-        assignments,
-        assignmentsError,
-        assignmentsLoading,
-        submitting,
-        submitCourseAssignment,
-    } = useCourses();
-
-
-
-    const [selectedAssignment, setSelectedAssignment] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
-
+    const { course, loading, error, fetchSingleCourse } = useCourses();
 
     useEffect(() => {
         if (typeof id !== "string") return;
-
         fetchSingleCourse(id);
-        getAssignmentById(id);
     }, [id]);
 
-    const handleOpenSubmitModal = (assignment) => {
-        setSelectedAssignment(assignment);
-        setModalVisible(true);
+    const handleSwipeEnd = (e) => {
+        const index = Math.round(e.nativeEvent.contentOffset.x / width);
+        setActiveTab(index);
     };
 
-    const handleSubmitAssignment = async (file) => {
-        if (!selectedAssignment || !id) {
-            throw new Error("Assignment or course ID is missing.");
-        }
-        await submitCourseAssignment(
-            selectedAssignment._id,
-            file,
-            id
-        );
-
-        setModalVisible(false);
-        setSelectedAssignment(null);
-
-        Alert.alert("Success", "Assignment submitted successfully.");
+    const goToTab = (index) => {
+        pagerRef.current?.scrollTo({ x: index * width, animated: true });
+        setActiveTab(index);
     };
 
+    const router = useRouter();
 
-
-    if (loading && !course) {
-        return <Loader />;
-    }
+    if (loading && !course) return <Loader />;
 
     if (error && !course) {
         return (
@@ -77,170 +54,74 @@ const SingleCourse = () => {
         );
     }
 
-    // Adjust this if your API wraps the course in another property.
-    const details = course?.course || course?.data || course;
-
-    if (!details) {
+    if (!course) {
         return (
             <View style={styles.center}>
                 <Text>No course details found.</Text>
+
             </View>
         );
     }
 
-    const title =
-        details.title ||
-        details.name ||
-        details.courseName ||
-        "Course Details";
-
-    const description =
-        details.description ||
-        details.shortDescription ||
-        "No description available.";
-
     return (
-        <ScrollView style={styles.container}>
-            {/* <Text style={styles.back} onPress={() => router.back()}>
-                ← Back to Courses
-            </Text> */}
+        <View style={styles.container}>
 
-            <View style={styles.card}>
-                <Text style={styles.title}>{title}</Text>
+            {/* Top header with back button */}
+            <View style={styles.header}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
+                </TouchableOpacity>
 
-                <Text style={styles.description}>
-                    {description}
+                <Text style={styles.headerTitle} numberOfLines={1}>
+                    {course?.course?.name || course?.name || "Course"}
                 </Text>
 
-                <View style={styles.divider} />
-
-                <Text style={styles.sectionTitle}>
-                    Course Information
-                </Text>
-
-                <DetailRow label="Course ID" value={details._id || id} />
-
-                <DetailRow
-                    label="Category"
-                    value={details.category?.name || details.category}
-                />
-
-                <DetailRow
-                    label="Level"
-                    value={details.level}
-                />
-
-                <DetailRow
-                    label="Duration"
-                    value={details.duration}
-                />
-
-
+                {/* Empty space so the title stays centered */}
+                <View style={styles.headerSpace} />
             </View>
-            <View style={styles.assignmentSection}>
-                <Text style={styles.assignmentHeading}>Assignments</Text>
 
-                <Text style={styles.assignmentSubtitle}>
-                    Complete your course assignments here.
-                </Text>
 
-                <AssignmentList
-                    assignments={assignments}
-                    loading={assignmentsLoading}
-                    error={assignmentsError}
-                    onSubmit={handleOpenSubmitModal}
-                />
-                <SubmitAssignmentModel
-                    visible={modalVisible}
-                    assignment={selectedAssignment}
-                    submitting={submitting}
-                    onClose={() => setModalVisible(false)}
-                    onSubmit={handleSubmitAssignment}
-                />
+            <View style={styles.tabBar}>
+                {TABS.map((tab, index) => (
+                    <TouchableOpacity
+                        key={tab}
+                        style={[styles.tab, activeTab === index && styles.tabActive]}
+                        onPress={() => goToTab(index)}
+                    >
+                        <Text
+                            style={[styles.tabText,
+                            activeTab === index && styles.tabTextActive,
+                            ]}
+                        >
+                            {tab}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
-        </ScrollView>
-    );
-};
 
-const DetailRow = ({ label, value }) => {
-    if (!value || typeof value === "object") {
-        return null;
-    }
+            {/* Swipeable pages */}
+            <ScrollView
+                ref={pagerRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={handleSwipeEnd}
+                style={styles.pager}
+            >
+                <View style={{ width }}>
+                    <CourseDetailsPage course={course} id={id} />
+                </View>
 
-    return (
-        <View style={styles.detailRow}>
-            <Text style={styles.label}>{label}</Text>
-            <Text style={styles.value}>{String(value)}</Text>
+                <View style={{ width }}>
+                    <CourseAssignmentsPage courseId={id} />
+                </View>
+            </ScrollView>
         </View>
     );
 };
 
 export default SingleCourse;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F9FAFB",
-        padding: 20,
-    },
-    center: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-    },
-    back: {
-        color: "#16803D",
-        fontSize: 15,
-        fontWeight: "600",
-        marginBottom: 20,
-    },
-    card: {
-        backgroundColor: "#FFFFFF",
-        padding: 20,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-        marginBottom: 24,
-    },
-    title: {
-        color: "#111827",
-        fontSize: 24,
-        fontWeight: "700",
-    },
-    description: {
-        color: "#6B7280",
-        fontSize: 15,
-        lineHeight: 23,
-        marginTop: 12,
-    },
-    divider: {
-        height: 1,
-        backgroundColor: "#E5E7EB",
-        marginVertical: 20,
-    },
-    sectionTitle: {
-        color: "#111827",
-        fontSize: 17,
-        fontWeight: "700",
-        marginBottom: 16,
-    },
-    detailRow: {
-        marginBottom: 16,
-    },
-    label: {
-        color: "#6B7280",
-        fontSize: 13,
-        marginBottom: 5,
-    },
-    value: {
-        color: "#111827",
-        fontSize: 15,
-        fontWeight: "500",
-    },
-    error: {
-        color: "#DC2626",
-        textAlign: "center",
-        fontSize: 15,
-    },
-});

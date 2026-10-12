@@ -2,7 +2,13 @@ import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { authStorage } from "../storage/authStorage";
 
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import Loader from "../components/Loader";
+import SafeScreen from "../components/SafeScreen";
+
+
+
+
 export default function RootLayout() {
 
   const [loading, setLoading] = useState(true);
@@ -40,9 +46,13 @@ export default function RootLayout() {
 
 
   return (
-    <Stack >
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <SafeAreaProvider>
+      <SafeScreen>
+        <Stack screenOptions={{ headerShown: false }} >
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </SafeScreen>
+    </SafeAreaProvider>
   )
 }
