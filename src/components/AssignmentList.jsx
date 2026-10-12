@@ -1,9 +1,18 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import {
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import AssignmentCard from "./AssignmentCard";
 
-const AssignmentList = ({ assignments, loading, error, onSubmit, }) => {
-
-
+const AssignmentList = ({
+    assignments,
+    loading,
+    error,
+    onSubmit,
+}) => {
     if (loading) {
         return (
             <View style={styles.center}>
@@ -21,7 +30,7 @@ const AssignmentList = ({ assignments, loading, error, onSubmit, }) => {
         );
     }
 
-    if (!assignments.length) {
+    if (!assignments?.length) {
         return (
             <View style={styles.center}>
                 <Text style={styles.message}>
@@ -34,9 +43,14 @@ const AssignmentList = ({ assignments, loading, error, onSubmit, }) => {
     return (
         <FlatList
             data={assignments}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item, index) =>
+                item._id || String(index)
+            }
             renderItem={({ item }) => (
-                <AssignmentCard assignment={item} onSubmit={onSubmit} />
+                <AssignmentCard
+                    assignment={item}
+                    onSubmit={onSubmit}
+                />
             )}
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
@@ -50,14 +64,13 @@ const styles = StyleSheet.create({
     center: {
         alignItems: "center",
         justifyContent: "center",
-        paddingVertical: 24,
-        paddingHorizontal: 16,
+        paddingVertical: 20,
     },
     message: {
+        marginTop: 8,
         color: "#6B7280",
         fontSize: 14,
         textAlign: "center",
-        marginTop: 8,
     },
     error: {
         color: "#DC2626",

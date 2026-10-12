@@ -88,9 +88,7 @@ export const getAssignmentByIdService = async (courseId) => {
 
 // Submit Assignment
 
-export const submitAssignmentService = async (
-    assignmentId,
-    assignmentFile
+export const submitAssignmentService = async (assignmentId, assignmentFile
 ) => {
     try {
         const token = await authStorage.getToken();
@@ -112,13 +110,10 @@ export const submitAssignmentService = async (
             .replace(/\s/g, "")
             .replace(/\/+$/, "");
 
-        const requestUrl =
-            `${baseUrl}/student/${assignmentId}/submit`;
+        const requestUrl = `${baseUrl}/student/${assignmentId}/submit`;
 
         // Confirm the local PDF exists before uploading.
-        const fileInfo = await FileSystem.getInfoAsync(
-            assignmentFile.uri
-        );
+        const fileInfo = await FileSystem.getInfoAsync(assignmentFile.uri);
 
         if (!fileInfo.exists || !fileInfo.size) {
             throw new Error(
@@ -126,13 +121,10 @@ export const submitAssignmentService = async (
             );
         }
 
-        const response = await FileSystem.uploadAsync(
-            requestUrl,
-            assignmentFile.uri,
+        const response = await FileSystem.uploadAsync(requestUrl, assignmentFile.uri,
             {
                 httpMethod: "POST",
-                uploadType:
-                    FileSystem.FileSystemUploadType.MULTIPART,
+                uploadType: FileSystem.FileSystemUploadType.MULTIPART,
                 fieldName: "answer",
                 mimeType: "application/pdf",
                 parameters: {},
@@ -173,8 +165,11 @@ export const submitAssignmentService = async (
 
 
 // Show result assignment
+export const getAssignmentResultService = async (assignmentId) => {
+    if (!assignmentId) {
+        throw new Error("Assignment ID is required.");
+    }
 
-export const resultAssginment = async (assginmentId) => {
     const token = await authStorage.getToken();
 
     if (!token) {
@@ -182,19 +177,41 @@ export const resultAssginment = async (assginmentId) => {
     }
 
 
-    const res = await fetch(`${API_URL} /student/${assginmentId}/result`, {
-        method: "GET",
-        headers: {
-            Accept: "application/json",
-            Cookie: `jwt-token=${token}`,
-        },
-    })
+    const response = await fetch(`${API_URL}/student/${assignmentId}/result`,
+        {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                Cookie: `jwt-token=${token}`,
+            },
+        }
+    );
 
-    const data = await res.json().catch(() => ({}));
+    const responseText = await response.text();
 
-    if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch assignment of the  course.");
+    let data;
+
+    try {
+        data = responseText ? JSON.parse(responseText) : null;
+    } catch {
+        throw new Error("The server returned an invalid response.");
     }
 
-    return data
-}
+    // A missing result means the student can remain in Pending state.
+    if (response.status === 404 || response.status === 204) {
+        return {
+            available: false,
+            data: null,
+        };
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data?.message || `Failed to fetch result (${response.status}).`
+        );
+    }
+    return {
+        available: true,
+        data,
+    };
+};
