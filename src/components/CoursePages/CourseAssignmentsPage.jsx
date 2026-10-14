@@ -8,10 +8,10 @@ import {
     Text
 } from "react-native";
 
-import { useCourses } from "../hooks/useCourses";
-import styles from "../styles/SingleCourse.style";
-import AssignmentList from "./AssignmentList";
-import SubmitAssignmentModel from "./SubmitAssignmentModel";
+import { useCourses } from "../../hooks/useCourses";
+import styles from "../../styles/SingleCourse.style";
+import AssignmentList from "../AssignmentList";
+import SubmitAssignmentModel from "../SubmitAssignmentModel";
 
 const CourseAssignmentsPage = ({ courseId }) => {
     const {

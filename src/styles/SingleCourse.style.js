@@ -79,17 +79,9 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     card: {
-        backgroundColor: COLORS.surface,
-        padding: 20,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        marginBottom: 16,
-        shadowColor: COLORS.shadow,
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 2,
+        paddingHorizontal: 12,
+        paddingVertical: 12
+
     },
     courseImage: {
         width: "100%",

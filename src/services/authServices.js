@@ -1,6 +1,8 @@
 import { API_URL } from "../api/api";
 
+import { File } from "expo-file-system";
 import { authStorage } from "../storage/authStorage";
+
 
 // SignIn from web then login here for student portel
 export const loginAuth = async (username, password, role) => {
@@ -110,4 +112,48 @@ export const getCurrentUser = async () => {
         throw new Error(data.message || 'Failed to fetch user.');
     }
     return data.user;
+};
+
+
+// Edit Profile Info 
+export const updateProfileService = async (profileData, imageFile) => {
+    try {
+        const token = await authStorage.getToken();
+
+        if (!token) {
+            throw new Error("Please login again.");
+        }
+
+        const formData = new FormData();
+
+        Object.entries(profileData).forEach(([key, value]) => {
+            formData.append(key, String(value ?? ""));
+        });
+
+        if (imageFile?.uri) {
+            const file = new File(imageFile.uri);
+            formData.append("imageFile", file);
+        }
+
+        const response = await fetch(`${API_URL}/auth/updateProfile`, {
+            method: "PUT",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to update profile.");
+        }
+
+
+        return data;
+    } catch (error) {
+        console.log("❌ Update profile error:", error);
+        throw error;
+    }
 };

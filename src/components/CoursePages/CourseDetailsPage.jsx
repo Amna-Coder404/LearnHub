@@ -7,12 +7,12 @@ import {
     Text,
     View,
 } from "react-native";
-import { formatDate, formatPrice } from "../lib/utils";
-import styles from "../styles/SingleCourse.style";
+import { formatDate, formatPrice } from "../../lib/utils";
+import styles from "../../styles/SingleCourse.style";
 
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
-import COLORS from "../constants/color";
+import COLORS from "../../constants/color";
 
 const DetailRow = ({ label, value }) => {
     if (value == null || value === "" || typeof value === "object") return null;
@@ -80,11 +80,11 @@ const CourseDetailsPage = ({ course, id }) => {
                             </View>
                         ) : null}
 
-                        {details.price != null ? (
+                        {/* {details.price != null ? (
                             <Text style={styles.price}>
                                 {formatPrice(details.price)}
                             </Text>
-                        ) : null}
+                        ) : null} */}
                     </View>
 
                     <Text
@@ -95,8 +95,7 @@ const CourseDetailsPage = ({ course, id }) => {
                     </Text>
 
                     {description.length > 150 && (
-                        <Pressable
-                            onPress={() => setShowFullDescription((prev) => !prev)}
+                        <Pressable onPress={() => setShowFullDescription((prev) => !prev)}
                         >
                             <Text style={styles.seeMore}>
                                 {showFullDescription ? "See less" : "See more"}
@@ -219,53 +218,7 @@ const CourseDetailsPage = ({ course, id }) => {
                 </MotiView>
             ) : null}
 
-            {/* Lessons */}
-            <MotiView
-                from={{ opacity: 0, translateY: 20 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{
-                    type: "timing",
-                    duration: 400,
-                    delay: 300,
-                }}
-            >
-                <View style={styles.card}>
-                    <Text style={styles.sectionTitle}>Lessons ({lessons.length})</Text>
 
-                    {lessons.length === 0 ? (
-                        <Text style={styles.description}>No lessons yet.</Text>
-                    ) : (
-                        lessons.map((lesson, index) => (
-                            <View key={lesson._id} style={styles.lessonRow}>
-                                <View style={styles.lessonNumber}>
-                                    <Text style={styles.lessonNumberText}>
-                                        {index + 1}
-                                    </Text>
-                                </View>
-
-                                <View style={styles.lessonInfo}>
-                                    <Text style={styles.lessonTitle}>
-                                        {lesson.title}
-                                    </Text>
-                                    <Text style={styles.lessonMeta}>
-                                        {lesson.isPublished ? "Published" : "Draft"}
-                                    </Text>
-                                </View>
-
-                                {lesson.videoUrl ? (
-                                    <Pressable
-                                        style={styles.watchButton}
-                                        onPress={() => Linking.openURL(lesson.videoUrl)}
-                                    >
-                                        <Ionicons name="play" size={16} color={COLORS.textOnPrimary} />
-                                        <Text style={styles.watchButtonText}>Watch</Text>
-                                    </Pressable>
-                                ) : null}
-                            </View>
-                        ))
-                    )}
-                </View>
-            </MotiView>
         </ScrollView>
     );
 };

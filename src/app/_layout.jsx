@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { authStorage } from "../storage/authStorage";
 
 import { SafeAreaProvider } from "react-native-safe-area-context";
+
 import Loader from "../components/Loader";
 import SafeScreen from "../components/SafeScreen";
 
-
+import { PaperProvider } from "react-native-paper";
 
 
 export default function RootLayout() {
@@ -46,13 +47,15 @@ export default function RootLayout() {
 
 
   return (
-    <SafeAreaProvider>
-      <SafeScreen>
-        <Stack screenOptions={{ headerShown: false }} >
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-      </SafeScreen>
-    </SafeAreaProvider>
+    <PaperProvider >
+      <SafeAreaProvider>
+        <SafeScreen>
+          <Stack screenOptions={{ headerShown: false }} >
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </SafeScreen>
+      </SafeAreaProvider>
+    </PaperProvider>
   )
 }

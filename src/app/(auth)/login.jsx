@@ -201,8 +201,7 @@ const Login = () => {
                         {(showError || error) ? (
                             <MotiView
                                 from={{
-                                    opacity: 0,
-                                    translateY: -8,
+                                    opacity: 0, translateY: -8,
                                 }}
                                 animate={{
                                     opacity: 1,
