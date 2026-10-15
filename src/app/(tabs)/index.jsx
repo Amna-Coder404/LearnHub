@@ -1,23 +1,34 @@
-import { useCallback, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { MotiView } from "moti";
+import { useCallback, useEffect, useState } from "react";
 import {
     FlatList,
-    StyleSheet,
+    RefreshControl,
     Text,
-    View,
+    View
 } from "react-native";
 
 import CourseCard from "../../components/CourseCard";
 import Loader from "../../components/Loader";
+import COLORS from "../../constants/color";
+import { useAuth } from "../../hooks/useAuth";
 import { useCourses } from "../../hooks/useCourses";
+import { getGreeting } from "../../lib/greeting";
+import styles from "../../styles/home.style";
 
 const Home = () => {
-    const { courses, loading, error, fetchAllCourses, } = useCourses();
+    const { courses, loading, error, fetchAllCourses } = useCourses();
+    const { getMeInfo } = useAuth(); // apna auth hook/store yahan lagayein
+    const [user, setUser] = useState(null);
+    const greeting = getGreeting();
+
 
     const loadCourses = useCallback(async () => {
         try {
             await fetchAllCourses();
-        } catch {
-            console.log("pata nahi")
+        } catch (err) {
+            console.log("Failed to load courses:", err);
         }
     }, []);
 
@@ -25,36 +36,122 @@ const Home = () => {
         loadCourses();
     }, [loadCourses]);
 
+    useEffect(() => {
+        loadUser();
+    }, [])
+
+    const loadUser = async () => {
+        const data = await getMeInfo();
+        setUser(data);
+
+    }
+
+
     if (loading && courses.length === 0) {
         return <Loader />;
     }
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.heading}>My Courses</Text>
-            <Text style={styles.subtitle}>
-                Continue your learning journey
-            </Text>
+    const Header = (
+        <View>
+            <MotiView
+                from={{ opacity: 0, translateY: -20 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ type: "spring", damping: 15 }}
+            >
+                <LinearGradient
+                    colors={["rgba(139,92,246,0.35)", "rgba(34,211,238,0.12)"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.hero}
+                >
+                    <View style={styles.heroTop}>
+                        <View style={styles.heroIcon}>
+                            <Ionicons
+                                name="school"
+                                size={22}
+                                color={COLORS.textOnPrimary}
+                            />
+                        </View>
+
+                        <View style={styles.countChip}>
+                            <Ionicons
+                                name="library-outline"
+                                size={14}
+                                color={COLORS.info}
+                            />
+                            <Text style={styles.countText}>
+                                {courses.length}{" "}
+                                {courses.length === 1 ? "course" : "courses"}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <Text style={styles.greeting}>{greeting} 👋</Text>
+                    <Text style={styles.heading}>{user?.fullname || "there"}</Text>
+                    <Text style={styles.subtitle}>Continue your learning journey</Text>
+                </LinearGradient>
+            </MotiView>
 
             {error ? (
-                <Text style={styles.error}>{error}</Text>
+                <MotiView
+                    from={{ opacity: 0, translateX: -20 }}
+                    animate={{ opacity: 1, translateX: 0 }}
+                    style={styles.errorBox}
+                >
+                    <Ionicons
+                        name="alert-circle"
+                        size={18}
+                        color={COLORS.error}
+                    />
+                    <Text style={styles.errorText}>{error}</Text>
+                </MotiView>
             ) : null}
+        </View>
+    );
 
+    return (
+        <View style={styles.container}>
             <FlatList
                 data={courses}
                 keyExtractor={(item) => item._id}
-                renderItem={({ item }) => (
-                    <CourseCard enrollment={item} />
+                renderItem={({ item, index }) => (
+                    <CourseCard enrollment={item} index={index} />
                 )}
+                ListHeaderComponent={Header}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
-                refreshing={loading}
-                onRefresh={loadCourses}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={loading}
+                        onRefresh={loadCourses}
+                        tintColor={COLORS.primary}
+                        colors={[COLORS.primary]}
+                        progressBackgroundColor={COLORS.surface}
+                    />
+                }
                 ListEmptyComponent={
                     !loading ? (
-                        <Text style={styles.empty}>
-                            No enrolled courses found.
-                        </Text>
+                        <MotiView
+                            from={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ type: "spring", damping: 14 }}
+                            style={styles.emptyBox}
+                        >
+                            <View style={styles.emptyIcon}>
+                                <Ionicons
+                                    name="book-outline"
+                                    size={36}
+                                    color={COLORS.primary}
+                                />
+                            </View>
+                            <Text style={styles.emptyTitle}>
+                                No courses yet
+                            </Text>
+                            <Text style={styles.emptyText}>
+                                Enrolled courses will show up here.
+                                Pull down to refresh.
+                            </Text>
+                        </MotiView>
                     ) : null
                 }
             />
@@ -63,41 +160,3 @@ const Home = () => {
 };
 
 export default Home;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F9FAFB",
-        paddingTop: 24,
-    },
-    heading: {
-        color: "#111827",
-        fontSize: 25,
-        fontWeight: "700",
-        paddingHorizontal: 20,
-    },
-    subtitle: {
-        color: "#6B7280",
-        fontSize: 14,
-        marginTop: 6,
-        marginBottom: 20,
-        paddingHorizontal: 20,
-    },
-    list: {
-        paddingHorizontal: 20,
-        paddingBottom: 24,
-        flexGrow: 1,
-    },
-    error: {
-        color: "#DC2626",
-        fontSize: 14,
-        marginHorizontal: 20,
-        marginBottom: 12,
-    },
-    empty: {
-        color: "#6B7280",
-        textAlign: "center",
-        marginTop: 40,
-        fontSize: 15,
-    },
-});

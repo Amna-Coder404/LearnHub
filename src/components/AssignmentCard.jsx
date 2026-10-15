@@ -20,9 +20,7 @@ const AssignmentCard = ({ assignment, onSubmit }) => {
     // Your API response format: { success: true, result: {...} }
     const result = response?.result ?? null;
 
-    const dueDate = assignment.dueDate
-        ? formatDate(assignment.dueDate)
-        : "No due date";
+    const dueDate = assignment.dueDate ? formatDate(assignment.dueDate) : "No due date";
 
     const resultIsReady =
         hasResult && result?.status === "graded" && result?.marks != null;

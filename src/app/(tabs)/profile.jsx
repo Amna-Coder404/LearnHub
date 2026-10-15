@@ -44,22 +44,22 @@ const Row = ({ icon, label, value, index, onPress, danger, chevron }) => {
 }
 
 const Profile = () => {
-    const { logout, error, getMeInfo } = useAuth()
-    const router = useRouter()
-    const insets = useSafeAreaInsets()
+    const { logout, error, getMeInfo } = useAuth();
+    const router = useRouter();
+    const insets = useSafeAreaInsets();
 
-    const [loading, setLoading] = useState(true)
-    const [user, setUser] = useState(null)
-    const [editVisible, setEditVisible] = useState(false)
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const [editVisible, setEditVisible] = useState(false);
 
     useEffect(() => {
-        loadUser()
+        loadUser();
     }, [])
 
     const loadUser = async () => {
-        const data = await getMeInfo()
-        setUser(data)
-        setLoading(false)
+        const data = await getMeInfo();
+        setUser(data);
+        setLoading(false);
     }
 
     if (loading) return <Loader />

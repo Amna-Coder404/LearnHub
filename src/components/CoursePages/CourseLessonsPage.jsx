@@ -118,6 +118,7 @@ const CourseLessonsPage = ({ course }) => {
                                     accessibilityRole="button"
                                     accessibilityLabel={`Watch ${lesson.title || `lesson ${index + 1}`}`}
                                 >
+
                                     <Ionicons
                                         name="play"
                                         size={15}

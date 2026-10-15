@@ -1,44 +1,48 @@
 const COLORS = {
     // Brand
-    primary: "#2563EB",
-    primaryDark: "#1D4ED8",
-    primaryLight: "#DBEAFE",
+    primary: "#8B5CF6",
+    primaryDark: "#7C3AED",
+    primaryLight: "rgba(139, 92, 246, 0.15)",
+
+    // Gradient
+    gradientStart: "#8B5CF6",
+    gradientEnd: "#22D3EE",
 
     // Backgrounds
-    background: "#F8FAFC",
-    surface: "#FFFFFF",
-    surfaceSecondary: "#F1F5F9",
+    background: "#0B0B14",
+    surface: "#14142A",
+    surfaceSecondary: "#1C1C38",
 
     // Text
-    text: "#0F172A",
-    textSecondary: "#64748B",
-    textMuted: "#94A3B8",
+    text: "#F5F5FF",
+    textSecondary: "#A1A1C7",
+    textMuted: "#6B6B94",
     textOnPrimary: "#FFFFFF",
 
     // Borders & inputs
-    border: "#E2E8F0",
-    inputBackground: "#FFFFFF",
-    placeholder: "#94A3B8",
-    focusBorder: "#2563EB",
+    border: "#262648",
+    inputBackground: "#14142A",
+    placeholder: "#6B6B94",
+    focusBorder: "#8B5CF6",
 
     // Status
-    success: "#16A34A",
-    successBackground: "#DCFCE7",
-    warning: "#D97706",
-    warningBackground: "#FEF3C7",
-    error: "#DC2626",
-    errorBackground: "#FEE2E2",
-    info: "#0284C7",
-    infoBackground: "#E0F2FE",
+    success: "#34D399",
+    successBackground: "rgba(52, 211, 153, 0.15)",
+    warning: "#FBBF24",
+    warningBackground: "rgba(251, 191, 36, 0.15)",
+    error: "#F87171",
+    errorBackground: "rgba(248, 113, 113, 0.15)",
+    info: "#22D3EE",
+    infoBackground: "rgba(34, 211, 238, 0.15)",
 
     // UI
-    overlay: "rgba(15, 23, 42, 0.45)",
-    disabled: "#CBD5E1",
-    shadow: "#0F172A",
+    overlay: "rgba(0, 0, 0, 0.65)",
+    disabled: "#3A3A5C",
+    shadow: "#8B5CF6",
 
     // OTP screen
-    accent: "#FF6422",
-    otpBackground: "#EEF2FF",
+    accent: "#F472B6",
+    otpBackground: "#14142A",
 };
 
 export default COLORS;
