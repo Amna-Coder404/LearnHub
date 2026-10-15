@@ -1,12 +1,26 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
-import { Button, TextInput } from "react-native-paper";
+import { MotiView } from "moti";
+import { useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    TextInput as RNTextInput,
+    ScrollView,
+    Text,
+    View,
+} from "react-native";
+import { TextInput } from "react-native-paper";
 import { usePassword } from "../hooks/usePassword";
 
 import COLORS from "../constants/color";
-import styles from "../styles/otp.style";
+import styles from "../styles/forgotPassword.style";
+
+const OTP_LENGTH = 6;
 
 const ForgotPassword = () => {
     const { forgotPasswordLogin, resetPasswordService, error, clearError } = usePassword();
@@ -20,7 +34,9 @@ const ForgotPassword = () => {
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const [localError, setLocalError] = useState("");
+    const [otpFocused, setOtpFocused] = useState(false);
 
+    const otpRef = useRef(null);
     const router = useRouter();
 
     const resetMessages = () => {
@@ -52,7 +68,7 @@ const ForgotPassword = () => {
     const handleResetPassword = async () => {
         resetMessages();
 
-        if (otp.length < 6) {
+        if (otp.length < OTP_LENGTH) {
             setLocalError("Please enter the 6-digit OTP.");
             return;
         }
@@ -93,28 +109,67 @@ const ForgotPassword = () => {
         outlineColor: COLORS.border,
         activeOutlineColor: COLORS.primary,
         textColor: COLORS.text,
+        theme: { colors: { onSurfaceVariant: COLORS.textSecondary } },
+        autoCapitalize: "none",
     };
 
-    const renderIcon = (name) => (
+    const leftIcon = (name) => (
         <TextInput.Icon
             icon={({ size, color }) => (
                 <MaterialCommunityIcons name={name} size={size} color={color} />
             )}
+            color={COLORS.textSecondary}
+        />
+    );
+
+    const eyeIcon = (
+        <TextInput.Icon
+            icon={showPassword ? "eye-off-outline" : "eye-outline"}
+            color={COLORS.textSecondary}
+            onPress={() => setShowPassword(!showPassword)}
         />
     );
 
     return (
-        <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}  >
-            <ScrollView contentContainerStyle={styles.scrollContent}
+        <KeyboardAvoidingView
+            style={styles.screen}
+            behavior="padding"
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
+        >
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                automaticallyAdjustKeyboardInsets
+                showsVerticalScrollIndicator={false}
             >
                 <View style={styles.container}>
-                    <View style={styles.logo}>
-                        <MaterialCommunityIcons
-                            name={otpSent ? "shield-key-outline" : "lock-reset"}
-                            size={38}
-                            color={COLORS.textOnPrimary}
+                    {/* Step indicator */}
+                    <View style={styles.steps}>
+                        <View style={[styles.step, styles.stepActive]} />
+                        <View style={[styles.step, otpSent && styles.stepActive]} />
+                    </View>
+
+                    {/* Icon with pulse ring */}
+                    <View style={styles.logoWrap}>
+                        <MotiView
+                            from={{ opacity: 0.5, scale: 0.8 }}
+                            animate={{ opacity: 0, scale: 1.8 }}
+                            transition={{ type: "timing", duration: 2000, loop: true }}
+                            style={styles.logoRing}
                         />
+                        <LinearGradient
+                            colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.logo}
+                        >
+                            <MaterialCommunityIcons
+                                name={otpSent ? "shield-key-outline" : "lock-reset"}
+                                size={40}
+                                color={COLORS.textOnPrimary}
+                            />
+                        </LinearGradient>
                     </View>
 
                     <Text style={styles.title}>
@@ -126,24 +181,27 @@ const ForgotPassword = () => {
                             : "Enter your email and we'll send you a code to reset your password."}
                     </Text>
 
-                    <View style={styles.form}>
+                    {/* Form (re-animates on each step) */}
+                    <MotiView
+                        key={otpSent ? "step-2" : "step-1"}
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ type: "timing", duration: 450 }}
+                        style={styles.form}
+                    >
                         {!otpSent ? (
-                            <>
-                                <Text style={styles.label}>Email</Text>
-                                <TextInput
-                                    {...inputProps}
-                                    placeholder="Enter your email"
-                                    value={email}
-                                    onChangeText={(v) => {
-                                        setEmail(v);
-                                        resetMessages();
-                                    }}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                    autoComplete="email"
-                                    left={renderIcon("email-outline")}
-                                />
-                            </>
+                            <TextInput
+                                {...inputProps}
+                                label="Email"
+                                value={email}
+                                onChangeText={(v) => {
+                                    setEmail(v);
+                                    resetMessages();
+                                }}
+                                keyboardType="email-address"
+                                autoComplete="email"
+                                left={leftIcon("email-outline")}
+                            />
                         ) : (
                             <>
                                 <Text style={styles.emailText}>
@@ -152,93 +210,140 @@ const ForgotPassword = () => {
                                 </Text>
 
                                 {successMessage ? (
-                                    <Text style={styles.success}>✓ {successMessage}</Text>
+                                    <View style={styles.successRow}>
+                                        <MaterialCommunityIcons
+                                            name="check-circle-outline"
+                                            size={18}
+                                            color={COLORS.success}
+                                        />
+                                        <Text style={styles.successText}>{successMessage}</Text>
+                                    </View>
                                 ) : null}
 
-                                <Text style={styles.label}>OTP code</Text>
-                                <TextInput
-                                    {...inputProps}
-                                    style={[styles.input, styles.otpInput]}
-                                    placeholder="000000"
+                                {/* OTP boxes */}
+                                <Pressable
+                                    onPress={() => otpRef.current?.focus()}
+                                    style={styles.otpRow}
+                                >
+                                    {Array.from({ length: OTP_LENGTH }).map((_, i) => {
+                                        const isActive =
+                                            otpFocused && i === Math.min(otp.length, OTP_LENGTH - 1);
+                                        return (
+                                            <View
+                                                key={i}
+                                                style={[
+                                                    styles.otpBox,
+                                                    otp[i] && styles.otpBoxFilled,
+                                                    isActive && styles.otpBoxActive,
+                                                ]}
+                                            >
+                                                <Text style={styles.otpDigit}>{otp[i] || ""}</Text>
+                                            </View>
+                                        );
+                                    })}
+                                </Pressable>
+                                <RNTextInput
+                                    ref={otpRef}
                                     value={otp}
-                                    maxLength={6}
+                                    maxLength={OTP_LENGTH}
                                     keyboardType="number-pad"
+                                    textContentType="oneTimeCode"
+                                    autoComplete="sms-otp"
+                                    autoFocus
+                                    onFocus={() => setOtpFocused(true)}
+                                    onBlur={() => setOtpFocused(false)}
                                     onChangeText={(v) => {
                                         setOtp(v.replace(/[^0-9]/g, ""));
                                         resetMessages();
                                     }}
+                                    style={styles.hiddenInput}
                                 />
 
-                                <Text style={styles.label}>New password</Text>
                                 <TextInput
                                     {...inputProps}
-                                    placeholder="Enter new password"
+                                    label="New password"
                                     value={newPassword}
                                     onChangeText={(v) => {
                                         setNewPassword(v);
                                         resetMessages();
                                     }}
                                     secureTextEntry={!showPassword}
-                                    autoCapitalize="none"
-                                    left={renderIcon("lock-outline")}
-                                    right={
-                                        <TextInput.Icon
-                                            icon={showPassword ? "eye-off-outline" : "eye-outline"}
-                                            onPress={() => setShowPassword(!showPassword)}
-                                        />
-                                    }
+                                    left={leftIcon("lock-outline")}
+                                    right={eyeIcon}
                                 />
 
-                                <Text style={styles.label}>Confirm password</Text>
                                 <TextInput
                                     {...inputProps}
-                                    placeholder="Re-enter new password"
+                                    label="Confirm password"
                                     value={confirmPassword}
                                     onChangeText={(v) => {
                                         setConfirmPassword(v);
                                         resetMessages();
                                     }}
                                     secureTextEntry={!showPassword}
-                                    autoCapitalize="none"
-                                    left={renderIcon("lock-outline")}
+                                    left={leftIcon("lock-outline")}
                                 />
                             </>
                         )}
 
-                        {(localError || error) ? (
-                            <Text style={styles.error}>{localError || error}</Text>
+                        {localError || error ? (
+                            <MotiView
+                                from={{ opacity: 0, translateY: -8 }}
+                                animate={{ opacity: 1, translateY: 0 }}
+                                transition={{ type: "timing", duration: 250 }}
+                                style={styles.errorRow}
+                            >
+                                <MaterialCommunityIcons
+                                    name="alert-circle-outline"
+                                    size={18}
+                                    color={COLORS.error}
+                                />
+                                <Text style={styles.errorText}>{localError || error}</Text>
+                            </MotiView>
                         ) : null}
 
-                        <Button
-                            mode="contained"
+                        <Pressable
                             onPress={otpSent ? handleResetPassword : handleNext}
-                            loading={loading}
                             disabled={loading}
-                            buttonColor={COLORS.primary}
-                            style={styles.submitButton}
-                            contentStyle={styles.submitContent}
-                            labelStyle={styles.submitLabel}
+                            style={({ pressed }) => [
+                                styles.submitWrap,
+                                pressed && { opacity: 0.85 },
+                            ]}
                         >
-                            {otpSent ? "Reset Password" : "Send OTP"}
-                        </Button>
+                            <LinearGradient
+                                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={styles.submit}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color={COLORS.textOnPrimary} />
+                                ) : (
+                                    <Text style={styles.submitLabel}>
+                                        {otpSent ? "Reset Password" : "Send OTP"}
+                                    </Text>
+                                )}
+                            </LinearGradient>
+                        </Pressable>
 
-                        <Button
-                            mode="text"
-                            textColor={COLORS.primary}
+                        <Pressable
                             style={styles.linkButton}
                             onPress={() => {
                                 if (otpSent) {
                                     setOtpSent(false);
                                     setSuccessMessage("");
+                                    setOtp("");
                                     resetMessages();
                                 } else {
                                     router.back();
                                 }
                             }}
                         >
-                            {otpSent ? "Use a different email" : "Back to login"}
-                        </Button>
-                    </View>
+                            <Text style={styles.linkLabel}>
+                                {otpSent ? "Use a different email" : "Back to login"}
+                            </Text>
+                        </Pressable>
+                    </MotiView>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>

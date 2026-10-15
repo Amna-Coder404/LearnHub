@@ -1,15 +1,9 @@
-
-import { MotiView } from "moti";
 import { useEffect, useState } from "react";
-import {
-    Alert,
-    RefreshControl,
-    ScrollView,
-    Text
-} from "react-native";
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 
+import COLORS from "../../constants/color";
 import { useCourses } from "../../hooks/useCourses";
-import styles from "../../styles/SingleCourse.style";
 import AssignmentList from "../AssignmentList";
 import SubmitAssignmentModel from "../SubmitAssignmentModel";
 
@@ -63,67 +57,52 @@ const CourseAssignmentsPage = ({ courseId }) => {
             throw new Error("Assignment or course ID is missing.");
         }
 
-        await submitCourseAssignment(
-            selectedAssignment._id,
-            file,
-            courseId
-        );
+        await submitCourseAssignment(selectedAssignment._id, file, courseId);
 
         setModalVisible(false);
         setSelectedAssignment(null);
 
         await fetchAssignments();
 
-        Alert.alert(
-            "Success",
-            "Assignment submitted successfully."
-        );
+        Alert.alert("Success", "Assignment submitted successfully.");
     };
 
     return (
         <>
             <ScrollView
-                contentContainerStyle={styles.page}
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
-                        colors={["#2563EB"]}
-                        tintColor="#2563EB"
+                        colors={[COLORS.primary]}
+                        tintColor={COLORS.primary}
+                        progressBackgroundColor={COLORS.surface}
                     />
                 }
             >
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{
-                        type: "timing",
-                        duration: 400,
-                    }}
-                >
+                <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
+                    <View style={styles.flex}>
+                        <Text style={styles.heading}>Assignments</Text>
+                        <Text style={styles.muted}>
+                            Complete your course assignments here.
+                        </Text>
+                    </View>
+                    {Array.isArray(assignments) && assignments.length > 0 ? (
+                        <Text style={styles.count}>{assignments.length} total</Text>
+                    ) : null}
+                </Animated.View>
 
-
-                    <Text style={styles.assignmentSubtitle}>
-                        Complete your course assignments here.
-                    </Text>
-                </MotiView>
-
-                <MotiView
-                    from={{ opacity: 0, translateY: 25 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{
-                        type: "timing",
-                        duration: 500,
-                        delay: 150,
-                    }}
-                >
+                <Animated.View entering={FadeInDown.delay(150).springify().damping(16)}>
                     <AssignmentList
                         assignments={assignments}
                         loading={assignmentsLoading}
                         error={assignmentsError}
                         onSubmit={handleOpenSubmitModal}
                     />
-                </MotiView>
+                </Animated.View>
             </ScrollView>
 
             <SubmitAssignmentModel
@@ -138,3 +117,18 @@ const CourseAssignmentsPage = ({ courseId }) => {
 };
 
 export default CourseAssignmentsPage;
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.background },
+    content: { padding: 24, paddingBottom: 40 },
+    flex: { flex: 1 },
+
+    header: {
+        flexDirection: "row",
+        alignItems: "flex-end",
+        marginBottom: 20,
+    },
+    heading: { fontSize: 24, fontWeight: "800", color: COLORS.text },
+    muted: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
+    count: { fontSize: 13, fontWeight: "700", color: COLORS.gradientEnd },
+});

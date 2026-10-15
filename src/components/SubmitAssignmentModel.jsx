@@ -1,5 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
+import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import {
     ActivityIndicator,
@@ -9,6 +11,10 @@ import {
     Text,
     View,
 } from "react-native";
+import Animated, { FadeIn, SlideInDown, ZoomIn } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import COLORS from "../constants/color";
 
 const SubmitAssignmentModel = ({
     visible,
@@ -19,7 +25,7 @@ const SubmitAssignmentModel = ({
 }) => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [error, setError] = useState("");
-
+    const insets = useSafeAreaInsets();
 
     const pickFile = async () => {
         try {
@@ -87,7 +93,6 @@ const SubmitAssignmentModel = ({
         }
     };
 
-
     const handleSubmit = async () => {
         console.log("[SUBMIT] Button clicked.");
         console.log("[SUBMIT] Selected file:", selectedFile);
@@ -117,7 +122,6 @@ const SubmitAssignmentModel = ({
         }
     };
 
-
     const handleClose = () => {
         if (submitting) return;
 
@@ -130,69 +134,98 @@ const SubmitAssignmentModel = ({
         <Modal
             visible={visible}
             transparent
-            animationType="fade"
+            animationType="none"
+            statusBarTranslucent
             onRequestClose={handleClose}
         >
             <View style={styles.overlay}>
-                <View style={styles.modal}>
-                    <Text style={styles.title}>Submit Assignment</Text>
+                {/* Backdrop: tap to close */}
+                <Animated.View entering={FadeIn.duration(250)} style={StyleSheet.absoluteFill}>
+                    <Pressable style={styles.backdrop} onPress={handleClose} />
+                </Animated.View>
 
-                    <Text style={styles.description}>
-                        Upload your completed work for:
-                    </Text>
+                {/* Sheet */}
+                <Animated.View
+                    entering={SlideInDown.springify().damping(18)}
+                    style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}
+                >
+                    <View style={styles.handle} />
 
-                    <Text style={styles.assignmentTitle}>
+                    <LinearGradient
+                        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.icon}
+                    >
+                        <Ionicons name="cloud-upload-outline" size={30} color={COLORS.textOnPrimary} />
+                    </LinearGradient>
+
+                    <Text style={styles.title}>Submit assignment</Text>
+                    <Text style={styles.muted}>Upload your completed work for</Text>
+                    <Text style={styles.assignmentTitle} numberOfLines={2}>
                         {assignment?.title}
                     </Text>
 
-                    <Pressable
-                        onPress={pickFile}
-                        disabled={submitting}
-                        style={styles.fileButton}
-                    >
-                        <Text style={styles.fileIcon}>＋</Text>
-                        <Text style={styles.fileText}>
-                            {selectedFile
-                                ? selectedFile.name
-                                : "Choose assignment file"}
-                        </Text>
-                    </Pressable>
-
-                    <Text style={styles.hint}>
-                        Select the file you want to submit.
-                    </Text>
-
-                    {!!error && (
-                        <Text style={styles.error}>{error}</Text>
+                    {/* Upload area */}
+                    {selectedFile ? (
+                        <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.fileRow}>
+                            <Ionicons name="document-text" size={28} color={COLORS.primary} />
+                            <View style={styles.flex}>
+                                <Text style={styles.fileName} numberOfLines={1}>
+                                    {selectedFile.name}
+                                </Text>
+                                <Text style={styles.muted}>PDF ready to submit</Text>
+                            </View>
+                            <Pressable
+                                onPress={() => setSelectedFile(null)}
+                                disabled={submitting}
+                                hitSlop={10}
+                            >
+                                <Ionicons name="close-circle" size={24} color={COLORS.textMuted} />
+                            </Pressable>
+                        </Animated.View>
+                    ) : (
+                        <Pressable onPress={pickFile} disabled={submitting} style={styles.dropZone}>
+                            <Ionicons name="add-circle-outline" size={30} color={COLORS.primary} />
+                            <Text style={styles.dropText}>Choose assignment file</Text>
+                            <Text style={styles.muted}>PDF only</Text>
+                        </Pressable>
                     )}
 
-                    <View style={styles.actions}>
-                        <Pressable
-                            onPress={handleClose}
-                            disabled={submitting}
-                            style={styles.cancelButton}
-                        >
-                            <Text style={styles.cancelText}>Cancel</Text>
-                        </Pressable>
+                    {!!error && (
+                        <View style={styles.errorRow}>
+                            <Ionicons name="alert-circle-outline" size={18} color={COLORS.error} />
+                            <Text style={styles.errorText}>{error}</Text>
+                        </View>
+                    )}
 
-                        <Pressable
-                            onPress={handleSubmit}
-                            disabled={submitting}
-                            style={[
-                                styles.submitButton,
-                                submitting && styles.disabled,
-                            ]}
+                    {/* Buttons */}
+                    <Pressable
+                        onPress={handleSubmit}
+                        disabled={submitting}
+                        style={({ pressed }) => [
+                            styles.submitWrap,
+                            (pressed || submitting) && { opacity: 0.8 },
+                        ]}
+                    >
+                        <LinearGradient
+                            colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.submit}
                         >
                             {submitting ? (
-                                <ActivityIndicator color="#fff" />
+                                <ActivityIndicator color={COLORS.textOnPrimary} />
                             ) : (
-                                <Text style={styles.submitText}>
-                                    Submit
-                                </Text>
+                                <Text style={styles.submitLabel}>Submit</Text>
                             )}
-                        </Pressable>
-                    </View>
-                </View>
+                        </LinearGradient>
+                    </Pressable>
+
+                    <Pressable onPress={handleClose} disabled={submitting} style={styles.cancel}>
+                        <Text style={styles.cancelLabel}>Cancel</Text>
+                    </Pressable>
+                </Animated.View>
             </View>
         </Modal>
     );
@@ -201,94 +234,96 @@ const SubmitAssignmentModel = ({
 export default SubmitAssignmentModel;
 
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(15, 23, 42, 0.55)",
-        justifyContent: "center",
-        padding: 22,
+    overlay: { flex: 1, justifyContent: "flex-end" },
+    backdrop: { flex: 1, backgroundColor: COLORS.overlay },
+    flex: { flex: 1 },
+
+    sheet: {
+        backgroundColor: COLORS.surface,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        paddingHorizontal: 24,
+        paddingTop: 12,
+        alignItems: "center",
     },
-    modal: {
-        backgroundColor: "#fff",
+    handle: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: COLORS.border,
+        marginBottom: 24,
+    },
+    icon: {
+        width: 64,
+        height: 64,
         borderRadius: 20,
-        padding: 22,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 16,
     },
-    title: {
-        fontSize: 21,
-        fontWeight: "700",
-        color: "#17152B",
-    },
-    description: {
-        marginTop: 12,
-        color: "#64748B",
-        fontSize: 14,
-    },
+    title: { fontSize: 22, fontWeight: "800", color: COLORS.text },
+    muted: { fontSize: 12, color: COLORS.textMuted, marginTop: 4 },
     assignmentTitle: {
-        marginTop: 5,
-        fontSize: 17,
-        fontWeight: "600",
-        color: "#7C3AED",
+        fontSize: 16,
+        fontWeight: "700",
+        color: COLORS.gradientEnd,
+        marginTop: 4,
+        textAlign: "center",
     },
-    fileButton: {
+
+    dropZone: {
+        alignSelf: "stretch",
+        alignItems: "center",
+        gap: 4,
+        marginTop: 24,
+        paddingVertical: 24,
+        borderWidth: 1.5,
+        borderStyle: "dashed",
+        borderColor: COLORS.primary,
+        borderRadius: 18,
+        backgroundColor: COLORS.primaryLight,
+    },
+    dropText: { fontSize: 15, fontWeight: "700", color: COLORS.text, marginTop: 4 },
+
+    fileRow: {
+        alignSelf: "stretch",
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
-        marginTop: 22,
-        padding: 15,
-        borderWidth: 1,
-        borderColor: "#C4B5FD",
-        borderStyle: "dashed",
-        borderRadius: 12,
-        backgroundColor: "#F5F3FF",
-    },
-    fileIcon: {
-        fontSize: 24,
-        color: "#7C3AED",
-    },
-    fileText: {
-        flex: 1,
-        color: "#4C1D95",
-        fontWeight: "600",
-    },
-    hint: {
-        marginTop: 9,
-        color: "#64748B",
-        fontSize: 12,
-    },
-    error: {
-        marginTop: 12,
-        color: "#DC2626",
-        fontSize: 13,
-    },
-    actions: {
-        flexDirection: "row",
         gap: 12,
         marginTop: 24,
+        padding: 16,
+        borderRadius: 18,
+        backgroundColor: COLORS.surfaceSecondary,
     },
-    cancelButton: {
-        flex: 1,
+    fileName: { fontSize: 15, fontWeight: "700", color: COLORS.text },
+
+    errorRow: {
+        alignSelf: "stretch",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        marginTop: 16,
+    },
+    errorText: { flex: 1, fontSize: 13, fontWeight: "500", color: COLORS.error },
+
+    submitWrap: {
+        alignSelf: "stretch",
+        marginTop: 24,
+        borderRadius: 16,
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.4,
+        shadowRadius: 14,
+        elevation: 8,
+    },
+    submit: {
+        height: 54,
+        borderRadius: 16,
         alignItems: "center",
         justifyContent: "center",
-        padding: 14,
-        borderRadius: 12,
-        backgroundColor: "#F1F5F9",
     },
-    cancelText: {
-        color: "#334155",
-        fontWeight: "600",
-    },
-    submitButton: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 14,
-        borderRadius: 12,
-        backgroundColor: "#7C3AED",
-    },
-    submitText: {
-        color: "#fff",
-        fontWeight: "700",
-    },
-    disabled: {
-        opacity: 0.6,
-    },
+    submitLabel: { fontSize: 16, fontWeight: "700", color: COLORS.textOnPrimary },
+
+    cancel: { paddingVertical: 14, paddingHorizontal: 24, marginTop: 4 },
+    cancelLabel: { fontSize: 14, fontWeight: "600", color: COLORS.textSecondary },
 });

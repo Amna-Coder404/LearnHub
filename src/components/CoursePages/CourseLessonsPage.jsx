@@ -1,10 +1,37 @@
-
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import Animated, {
+    FadeIn,
+    FadeInDown,
+    ZoomIn,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+} from "react-native-reanimated";
 
 import COLORS from "../../constants/color";
 import styles from "../../styles/CourseLessons.style";
+
+const PlayButton = ({ onPress, label }) => {
+    const scale = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    return (
+        <Pressable
+            onPress={onPress}
+            onPressIn={() => (scale.value = withSpring(0.85))}
+            onPressOut={() => (scale.value = withSpring(1))}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+        >
+            <Animated.View style={[styles.play, animatedStyle]}>
+                <Ionicons name="play" size={16} color={COLORS.textOnPrimary} />
+            </Animated.View>
+        </Pressable>
+    );
+};
 
 const CourseLessonsPage = ({ course }) => {
     const lessons =
@@ -20,121 +47,68 @@ const CourseLessonsPage = ({ course }) => {
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled
         >
-            <View style={styles.headingRow}>
+            <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
                 <View>
                     <Text style={styles.heading}>Course Lessons</Text>
-                    <Text style={styles.subtitle}>
-                        Continue learning at your own pace.
-                    </Text>
+                    <Text style={styles.muted}>Continue learning at your own pace.</Text>
                 </View>
-
-                <View style={styles.countBadge}>
-                    <Text style={styles.countText}>
-                        {lessons.length}
-                    </Text>
-                </View>
-            </View>
+                <Text style={styles.count}>{lessons.length} lessons</Text>
+            </Animated.View>
 
             {lessons.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <View style={styles.emptyIcon}>
-                        <Ionicons
-                            name="book-outline"
-                            size={32}
-                            color={COLORS.primary}
-                        />
-                    </View>
-
-                    <Text style={styles.emptyTitle}>
+                <View style={styles.empty}>
+                    <Animated.View entering={ZoomIn.springify()}>
+                        <Ionicons name="book-outline" size={56} color={COLORS.primary} />
+                    </Animated.View>
+                    <Animated.Text entering={FadeInDown.delay(200)} style={styles.emptyTitle}>
                         No lessons available
-                    </Text>
-
-                    <Text style={styles.emptyDescription}>
-                        Lessons for this course will appear here when
-                        they are available.
-                    </Text>
+                    </Animated.Text>
+                    <Animated.Text entering={FadeInDown.delay(300)} style={styles.muted}>
+                        Lessons will appear here when they are available.
+                    </Animated.Text>
                 </View>
             ) : (
                 lessons.map((lesson, index) => {
                     const published = lesson.isPublished;
+                    const title = lesson.title || `Lesson ${index + 1}`;
 
                     return (
-                        <MotiView
+                        <Animated.View
                             key={lesson._id || index}
-                            from={{ opacity: 0, translateY: 10 }}
-                            animate={{ opacity: 1, translateY: 0 }}
-                            transition={{
-                                type: "timing",
-                                duration: 250,
-                                delay: Math.min(index * 50, 250),
-                            }}
-                            style={styles.lessonRow}
+                            entering={FadeInDown.delay(Math.min(index * 60, 300)).springify().damping(16)}
+                            style={styles.row}
                         >
-                            <View style={styles.lessonIcon}>
-                                <Ionicons
-                                    name={
-                                        lesson.videoUrl
-                                            ? "play"
-                                            : "document-text-outline"
-                                    }
-                                    size={21}
-                                    color={COLORS.primary}
-                                />
+                            <View style={styles.number}>
+                                <Text style={styles.numberText}>{index + 1}</Text>
                             </View>
 
-                            <View style={styles.lessonInfo}>
-                                <Text style={styles.lessonNumber}>
-                                    LESSON {index + 1}
+                            <View style={styles.info}>
+                                <Text style={styles.title} numberOfLines={2}>
+                                    {title}
                                 </Text>
-
-                                <Text style={styles.lessonTitle}>
-                                    {lesson.title || `Lesson ${index + 1}`}
+                                <Text
+                                    style={[
+                                        styles.status,
+                                        { color: published ? COLORS.success : COLORS.warning },
+                                    ]}
+                                >
+                                    {published ? "Published" : "Not published"}
                                 </Text>
-
-                                <View style={styles.statusRow}>
-                                    <View
-                                        style={[
-                                            styles.statusDot,
-                                            published
-                                                ? styles.publishedDot
-                                                : styles.draftDot,
-                                        ]}
-                                    />
-
-                                    <Text style={styles.lessonStatus}>
-                                        {published
-                                            ? "Published"
-                                            : "Not published"}
-                                    </Text>
-                                </View>
                             </View>
 
                             {lesson.videoUrl && published ? (
-                                <Pressable
-                                    style={styles.watchButton}
-                                    onPress={() =>
-                                        Linking.openURL(lesson.videoUrl)
-                                    }
-                                    accessibilityRole="button"
-                                    accessibilityLabel={`Watch ${lesson.title || `lesson ${index + 1}`}`}
-                                >
-
-                                    <Ionicons
-                                        name="play"
-                                        size={15}
-                                        color={COLORS.textOnPrimary}
-                                    />
-                                </Pressable>
+                                <PlayButton
+                                    label={`Watch ${title}`}
+                                    onPress={() => Linking.openURL(lesson.videoUrl)}
+                                />
                             ) : (
-                                <View style={styles.lockIcon}>
-                                    <Ionicons
-                                        name="lock-closed-outline"
-                                        size={17}
-                                        color={COLORS.textMuted}
-                                    />
-                                </View>
+                                <Ionicons
+                                    name="lock-closed-outline"
+                                    size={20}
+                                    color={COLORS.textMuted}
+                                />
                             )}
-                        </MotiView>
+                        </Animated.View>
                     );
                 })
             )}
@@ -143,3 +117,4 @@ const CourseLessonsPage = ({ course }) => {
 };
 
 export default CourseLessonsPage;
+

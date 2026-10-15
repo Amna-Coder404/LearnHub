@@ -1,14 +1,14 @@
 import { Stack, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StyleSheet, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { authStorage } from "../storage/authStorage";
 import SafeScreen from "../components/SafeScreen";
 import SplashScreen from "../components/SplashScreen";
-
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("screen");
+import COLORS from "../constants/color";
+import { authStorage } from "../storage/authStorage";
 
 export default function RootLayout() {
   const router = useRouter();
@@ -44,6 +44,8 @@ export default function RootLayout() {
   return (
     <PaperProvider>
       <SafeAreaProvider>
+        <StatusBar style="light" />
+
         <View style={styles.container}>
           <SafeScreen>
             <Stack screenOptions={{ headerShown: false }}>
@@ -66,15 +68,11 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0B0B14",
+    backgroundColor: COLORS.background,
   },
   splashOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: SCREEN_W,
-    height: SCREEN_H,
-    backgroundColor: "#0B0B14",
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.background,
     zIndex: 9999,
     elevation: 9999,
   },
