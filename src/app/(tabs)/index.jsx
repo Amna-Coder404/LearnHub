@@ -6,47 +6,88 @@ import {
     FlatList,
     RefreshControl,
     Text,
-    View
+    View,
 } from "react-native";
 
 import CourseCard from "../../components/CourseCard";
 import Loader from "../../components/Loader";
+import OfflineScreen from "../../components/Offline/OfflineScreen";
 import COLORS from "../../constants/color";
+
 import { useAuth } from "../../hooks/useAuth";
 import { useCourses } from "../../hooks/useCourses";
+import useInternet from "../../hooks/useInternet";
+
 import { getGreeting } from "../../lib/greeting";
 import styles from "../../styles/home.style";
 
 const Home = () => {
+    const { isOnline } = useInternet();
     const { courses, loading, error, fetchAllCourses } = useCourses();
-    const { getMeInfo } = useAuth(); // apna auth hook/store yahan lagayein
+    const { getMeInfo } = useAuth();
+
     const [user, setUser] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
+
     const greeting = getGreeting();
 
-
+    // Initial course load.
     const loadCourses = useCallback(async () => {
         try {
             await fetchAllCourses();
         } catch (err) {
             console.log("Failed to load courses:", err);
         }
-    }, []);
+    }, [fetchAllCourses]);
 
     useEffect(() => {
         loadCourses();
     }, [loadCourses]);
 
+    // Load user information independently of the course list.
     useEffect(() => {
+        let active = true;
+
+        const loadUser = async () => {
+            try {
+                const data = await getMeInfo();
+
+                if (active) {
+                    setUser(data);
+                }
+            } catch (err) {
+                console.log("Failed to load user:", err);
+            }
+        };
+
         loadUser();
-    }, [])
 
-    const loadUser = async () => {
-        const data = await getMeInfo();
-        setUser(data);
+        return () => {
+            active = false;
+        };
+    }, [getMeInfo]);
 
+    // Pull-to-refresh has its own indicator.
+    const handleRefresh = useCallback(async () => {
+        if (!isOnline || refreshing) return;
+
+        setRefreshing(true);
+
+        try {
+            await fetchAllCourses();
+        } catch (err) {
+            console.log("Failed to refresh courses:", err);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [fetchAllCourses, isOnline, refreshing]);
+
+    // Show the offline screen when there is no connection.
+    if (!isOnline) {
+        return <OfflineScreen />;
     }
 
-
+    // Full-screen loading only before the first course data arrives.
     if (loading && courses.length === 0) {
         return <Loader />;
     }
@@ -59,7 +100,10 @@ const Home = () => {
                 transition={{ type: "spring", damping: 15 }}
             >
                 <LinearGradient
-                    colors={["rgba(139,92,246,0.35)", "rgba(34,211,238,0.12)"]}
+                    colors={[
+                        "rgba(139,92,246,0.35)",
+                        "rgba(34,211,238,0.12)",
+                    ]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.hero}
@@ -87,8 +131,14 @@ const Home = () => {
                     </View>
 
                     <Text style={styles.greeting}>{greeting} 👋</Text>
-                    <Text style={styles.heading}>{user?.fullname || "there"}</Text>
-                    <Text style={styles.subtitle}>Continue your learning journey</Text>
+
+                    <Text style={styles.heading}>
+                        {user?.fullname || "there"}
+                    </Text>
+
+                    <Text style={styles.subtitle}>
+                        Continue your learning journey
+                    </Text>
                 </LinearGradient>
             </MotiView>
 
@@ -122,8 +172,8 @@ const Home = () => {
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
-                        refreshing={loading}
-                        onRefresh={loadCourses}
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
                         tintColor={COLORS.primary}
                         colors={[COLORS.primary]}
                         progressBackgroundColor={COLORS.surface}
@@ -144,9 +194,11 @@ const Home = () => {
                                     color={COLORS.primary}
                                 />
                             </View>
+
                             <Text style={styles.emptyTitle}>
                                 No courses yet
                             </Text>
+
                             <Text style={styles.emptyText}>
                                 Enrolled courses will show up here.
                                 Pull down to refresh.

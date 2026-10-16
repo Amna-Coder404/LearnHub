@@ -1,4 +1,5 @@
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRootNavigationState, useRouter } from "expo-router";
+import * as NativeSplash from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -10,12 +11,26 @@ import SplashScreen from "../components/SplashScreen";
 import COLORS from "../constants/color";
 import { authStorage } from "../storage/authStorage";
 
+NativeSplash.preventAutoHideAsync().catch(() => { });
+
+export const unstable_settings = {
+  initialRouteName: "(auth)",
+};
+
 export default function RootLayout() {
   const router = useRouter();
+  const navState = useRootNavigationState();
+
   const [splashFinished, setSplashFinished] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
   const finishSplash = useCallback(() => {
     setSplashFinished(true);
+  }, []);
+
+  const hideNativeSplash = useCallback(() => {
+    NativeSplash.hideAsync().catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -25,12 +40,12 @@ export default function RootLayout() {
       try {
         const token = await authStorage.getToken();
         if (!active) return;
-        router.replace(token ? "/(tabs)" : "/(auth)/login");
+        setHasToken(Boolean(token));
       } catch (error) {
         console.log("ERROR TOKEN:", error);
-        if (active) {
-          router.replace("/(auth)/login");
-        }
+        if (active) setHasToken(false);
+      } finally {
+        if (active) setAuthChecked(true);
       }
     }
 
@@ -39,7 +54,23 @@ export default function RootLayout() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, []);
+
+  useEffect(() => {
+    if (!splashFinished || !authChecked || !navState?.key) return;
+
+    router.replace(hasToken ? "/(tabs)" : "/(auth)/login");
+  }, [splashFinished, authChecked, hasToken, navState?.key, router]);
+
+  // Splash ke time sirf splash dikhao, Stack mount nahi hoga
+  if (!splashFinished) {
+    return (
+      <View style={styles.splashRoot} onLayout={hideNativeSplash}>
+        <StatusBar hidden style="light" />
+        <SplashScreen onFinish={finishSplash} />
+      </View>
+    );
+  }
 
   return (
     <PaperProvider>
@@ -54,12 +85,6 @@ export default function RootLayout() {
             </Stack>
           </SafeScreen>
         </View>
-
-        {!splashFinished && (
-          <View style={styles.splashOverlay}>
-            <SplashScreen onFinish={finishSplash} />
-          </View>
-        )}
       </SafeAreaProvider>
     </PaperProvider>
   );
@@ -70,10 +95,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  splashOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: COLORS.background,
-    zIndex: 9999,
-    elevation: 9999,
+  splashRoot: {
+    flex: 1,
+    backgroundColor: "#0B0B14",
   },
 });

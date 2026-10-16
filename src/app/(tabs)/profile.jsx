@@ -11,6 +11,9 @@ import COLORS from '../../constants/color'; // adjust path
 import { useAuth } from '../../hooks/useAuth'
 import styles from '../../styles/profile.style'
 
+import OfflineScreen from "../../components/Offline/OfflineScreen"
+import useInternet from "../../hooks/useInternet"
+
 
 const Row = ({ icon, label, value, index, onPress, danger, chevron }) => {
     const Wrapper = onPress ? Pressable : View
@@ -51,7 +54,7 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
     const [editVisible, setEditVisible] = useState(false);
-
+    const { isOnline } = useInternet();
     useEffect(() => {
         loadUser();
     }, [])
@@ -60,6 +63,9 @@ const Profile = () => {
         const data = await getMeInfo();
         setUser(data);
         setLoading(false);
+    }
+    if (!isOnline) {
+        return <OfflineScreen />;
     }
 
     if (loading) return <Loader />

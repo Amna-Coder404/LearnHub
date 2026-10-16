@@ -1,31 +1,12 @@
-import LottieView from "lottie-react-native";
-import { StyleSheet, View } from "react-native";
-import COLORS from "../constants/color";
+import { ActivityIndicator, View } from 'react-native'
+import COLORS from '../constants/color'
 
 const Loader = () => {
     return (
-        <View style={styles.container}>
-            <LottieView
-                source={require("../../assets/animations/loader.json")}
-                autoPlay
-                loop
-                style={styles.animation}
-            />
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: COLORS.background }}>
+            <ActivityIndicator size={"large"} color={COLORS.gradientEnd} />
         </View>
-    );
-};
+    )
+}
 
-export default Loader;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    animation: {
-        width: 180,
-        height: 180,
-    },
-});
+export default Loader

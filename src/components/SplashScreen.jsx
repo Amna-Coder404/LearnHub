@@ -2,9 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
 import { useEffect } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
-
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("screen");
+import { StyleSheet, Text, View } from "react-native";
 
 export default function SplashScreen({ onFinish }) {
     useEffect(() => {
@@ -20,7 +18,7 @@ export default function SplashScreen({ onFinish }) {
             <LinearGradient
                 colors={["#0B0B14", "#17102D", "#0B0B14"]}
                 locations={[0, 0.5, 1]}
-                style={styles.gradient}
+                style={StyleSheet.absoluteFillObject}
             />
 
             <MotiView
@@ -38,11 +36,7 @@ export default function SplashScreen({ onFinish }) {
             <MotiView
                 from={{ opacity: 0, translateY: 30, scale: 0.6 }}
                 animate={{ opacity: 1, translateY: 0, scale: 1 }}
-                transition={{
-                    type: "timing",
-                    duration: 1000,
-                    delay: 300,
-                }}
+                transition={{ type: "timing", duration: 1000, delay: 300 }}
                 style={styles.logoOuter}
             >
                 <LinearGradient
@@ -56,11 +50,7 @@ export default function SplashScreen({ onFinish }) {
             <MotiView
                 from={{ opacity: 0, translateY: 20 }}
                 animate={{ opacity: 1, translateY: 0 }}
-                transition={{
-                    type: "timing",
-                    duration: 900,
-                    delay: 900,
-                }}
+                transition={{ type: "timing", duration: 900, delay: 900 }}
                 style={styles.brand}
             >
                 <Text style={styles.title}>
@@ -82,18 +72,12 @@ export default function SplashScreen({ onFinish }) {
                     <MotiView
                         from={{ translateX: -35 }}
                         animate={{ translateX: 110 }}
-                        transition={{
-                            type: "timing",
-                            duration: 1000,
-                            loop: true,
-                        }}
+                        transition={{ type: "timing", duration: 1000, loop: true }}
                         style={styles.loadingBar}
                     />
                 </View>
 
-                <Text style={styles.footerText}>
-                    YOUR LEARNING JOURNEY STARTS HERE
-                </Text>
+                <Text style={styles.footerText}>YOUR LEARNING JOURNEY STARTS HERE</Text>
             </MotiView>
         </View>
     );
@@ -101,22 +85,11 @@ export default function SplashScreen({ onFinish }) {
 
 const styles = StyleSheet.create({
     container: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: SCREEN_W,
-        height: SCREEN_H,
+        flex: 1,
         backgroundColor: "#0B0B14",
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
-    },
-    gradient: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: SCREEN_W,
-        height: SCREEN_H,
     },
     glow: {
         position: "absolute",
