@@ -2,19 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
 import { useCallback, useEffect, useState } from "react";
-import {
-    FlatList,
-    RefreshControl,
-    Text,
-    View,
-} from "react-native";
+import { FlatList, RefreshControl, Text, View } from "react-native";
 
 import CourseCard from "../../components/CourseCard";
+import CourseFilterBar from "../../components/CourseFilterBar";
 import Loader from "../../components/Loader";
 import OfflineScreen from "../../components/Offline/OfflineScreen";
 import COLORS from "../../constants/color";
 
 import { useAuth } from "../../hooks/useAuth";
+import { useCourseFilter } from "../../hooks/useCourseFilter";
 import { useCourses } from "../../hooks/useCourses";
 import useInternet from "../../hooks/useInternet";
 
@@ -26,12 +23,15 @@ const Home = () => {
     const { courses, loading, error, fetchAllCourses } = useCourses();
     const { getMeInfo } = useAuth();
 
+    // Hooks hamesha early return se pehle
+    const { filtered, categories, category, setCategory } =
+        useCourseFilter(courses);
+
     const [user, setUser] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
 
     const greeting = getGreeting();
 
-    // Initial course load.
     const loadCourses = useCallback(async () => {
         try {
             await fetchAllCourses();
@@ -44,17 +44,13 @@ const Home = () => {
         loadCourses();
     }, [loadCourses]);
 
-    // Load user information independently of the course list.
     useEffect(() => {
         let active = true;
 
         const loadUser = async () => {
             try {
                 const data = await getMeInfo();
-
-                if (active) {
-                    setUser(data);
-                }
+                if (active) setUser(data);
             } catch (err) {
                 console.log("Failed to load user:", err);
             }
@@ -67,7 +63,6 @@ const Home = () => {
         };
     }, [getMeInfo]);
 
-    // Pull-to-refresh has its own indicator.
     const handleRefresh = useCallback(async () => {
         if (!isOnline || refreshing) return;
 
@@ -82,12 +77,10 @@ const Home = () => {
         }
     }, [fetchAllCourses, isOnline, refreshing]);
 
-    // Show the offline screen when there is no connection.
     if (!isOnline) {
         return <OfflineScreen />;
     }
 
-    // Full-screen loading only before the first course data arrives.
     if (loading && courses.length === 0) {
         return <Loader />;
     }
@@ -100,10 +93,7 @@ const Home = () => {
                 transition={{ type: "spring", damping: 15 }}
             >
                 <LinearGradient
-                    colors={[
-                        "rgba(139,92,246,0.35)",
-                        "rgba(34,211,238,0.12)",
-                    ]}
+                    colors={["rgba(139,92,246,0.35)", "rgba(34,211,238,0.12)"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.hero}
@@ -156,13 +146,21 @@ const Home = () => {
                     <Text style={styles.errorText}>{error}</Text>
                 </MotiView>
             ) : null}
+
+            <CourseFilterBar
+                categories={categories}
+                category={category}
+                onCategoryChange={setCategory}
+            />
         </View>
     );
+
+    const isFilterEmpty = courses.length > 0 && filtered.length === 0;
 
     return (
         <View style={styles.container}>
             <FlatList
-                data={courses}
+                data={filtered}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item, index }) => (
                     <CourseCard enrollment={item} index={index} />
@@ -196,12 +194,15 @@ const Home = () => {
                             </View>
 
                             <Text style={styles.emptyTitle}>
-                                No courses yet
+                                {isFilterEmpty
+                                    ? "No courses in this category"
+                                    : "No courses yet"}
                             </Text>
 
                             <Text style={styles.emptyText}>
-                                Enrolled courses will show up here.
-                                Pull down to refresh.
+                                {isFilterEmpty
+                                    ? "Choose another category to see more."
+                                    : "Enrolled courses will show up here. Pull down to refresh."}
                             </Text>
                         </MotiView>
                     ) : null
