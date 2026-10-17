@@ -1,25 +1,15 @@
 import {
-    ActivityIndicator,
     FlatList,
     StyleSheet,
     Text,
-    View,
+    View
 } from "react-native";
 import AssignmentCard from "./AssignmentCard";
 
-const AssignmentList = ({
-    assignments,
-    loading,
-    error,
-    onSubmit,
+const AssignmentList = ({ assignments, loading, error, onSubmit, onView
 }) => {
     if (loading) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color="#7C3AED" />
-                <Text style={styles.message}>Loading assignments...</Text>
-            </View>
-        );
+        return
     }
 
     if (error) {
@@ -43,13 +33,13 @@ const AssignmentList = ({
     return (
         <FlatList
             data={assignments}
-            keyExtractor={(item, index) =>
-                item._id || String(index)
+            keyExtractor={(item, index) => item._id || String(index)
             }
             renderItem={({ item }) => (
                 <AssignmentCard
                     assignment={item}
                     onSubmit={onSubmit}
+                    onView={onView}
                 />
             )}
             scrollEnabled={false}

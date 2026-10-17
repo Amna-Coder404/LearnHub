@@ -2,7 +2,7 @@
   "expo": {
     "name": "LearnHub",
     "slug": "LearnHub",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "learnhub",
@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.devamna.learnhub",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#0B0B14",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -33,7 +34,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-video",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

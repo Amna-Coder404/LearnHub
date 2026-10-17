@@ -5,7 +5,7 @@ import { formatDate } from "../lib/utils";
 import styles from "../styles/AssignmentCard.style";
 
 
-const AssignmentCard = ({ assignment, onSubmit }) => {
+const AssignmentCard = ({ assignment, onSubmit, onView }) => {
     const isSubmitted = Boolean(assignment.submission);
 
     const {
@@ -93,11 +93,9 @@ const AssignmentCard = ({ assignment, onSubmit }) => {
             {(assignment.pdfUrl || (isSubmitted && answerUrl)) && (
                 <View style={styles.buttonRow}>
                     {assignment.pdfUrl ? (
-                        <Pressable
-                            style={styles.outlineButton}
-                            onPress={() => openUrl(assignment.pdfUrl)}
-                        >
-                            <Text style={styles.outlineButtonText}>
+                        <Pressable style={styles.outlineButton}
+                            onPress={() => onView?.(assignment)}>
+                            <Text style={styles.outlineButtonText} >
                                 View PDF
                             </Text>
                         </Pressable>

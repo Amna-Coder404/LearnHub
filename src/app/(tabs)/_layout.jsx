@@ -1,6 +1,8 @@
-import { Ionicons } from '@expo/vector-icons'
-import { Tabs } from 'expo-router'
-import COLORS from '../../constants/color'; // adjust to your COLORS path
+
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
+import { View } from 'react-native';
+import COLORS from '../../constants/color';
 
 export default function TabsLayout() {
     return (
@@ -9,7 +11,12 @@ export default function TabsLayout() {
                 headerShown: false,
                 tabBarActiveTintColor: COLORS.primary,
                 tabBarInactiveTintColor: COLORS.textMuted,
-                tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
+
+                tabBarLabelStyle: {
+                    fontSize: 12,
+                    fontWeight: '600',
+                },
+
                 tabBarStyle: {
                     backgroundColor: COLORS.surface,
                     borderTopColor: COLORS.border,
@@ -24,11 +31,26 @@ export default function TabsLayout() {
                 options={{
                     title: 'Courses',
                     tabBarIcon: ({ color, size, focused }) => (
-                        <Ionicons
-                            name={focused ? 'book' : 'book-outline'}
-                            size={size}
-                            color={color}
-                        />
+                        <View style={{ alignItems: 'center' }}>
+                            {focused && (
+                                <View
+                                    style={{
+                                        position: 'absolute',
+                                        top: -7,
+                                        width: 5,
+                                        height: 5,
+                                        borderRadius: 3,
+                                        backgroundColor: COLORS.primary,
+                                    }}
+                                />
+                            )}
+
+                            <Ionicons
+                                name={focused ? 'book' : 'book-outline'}
+                                size={size}
+                                color={color}
+                            />
+                        </View>
                     ),
                 }}
             />
@@ -38,14 +60,29 @@ export default function TabsLayout() {
                 options={{
                     title: 'Profile',
                     tabBarIcon: ({ color, size, focused }) => (
-                        <Ionicons
-                            name={focused ? 'person' : 'person-outline'}
-                            size={size}
-                            color={color}
-                        />
+                        <View style={{ alignItems: 'center' }}>
+                            {focused && (
+                                <View
+                                    style={{
+                                        position: 'absolute',
+                                        top: -7,
+                                        width: 5,
+                                        height: 5,
+                                        borderRadius: 3,
+                                        backgroundColor: COLORS.primary,
+                                    }}
+                                />
+                            )}
+
+                            <Ionicons
+                                name={focused ? 'person' : 'person-outline'}
+                                size={size}
+                                color={color}
+                            />
+                        </View>
                     ),
                 }}
             />
         </Tabs>
-    )
+    );
 }

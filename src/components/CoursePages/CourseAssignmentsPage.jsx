@@ -6,6 +6,10 @@ import COLORS from "../../constants/color";
 import { useCourses } from "../../hooks/useCourses";
 import AssignmentList from "../AssignmentList";
 import SubmitAssignmentModel from "../SubmitAssignmentModel";
+import AssignmentViewerModal from "./AssignmentViewerModal";
+
+
+
 
 const CourseAssignmentsPage = ({ courseId }) => {
     const {
@@ -20,6 +24,8 @@ const CourseAssignmentsPage = ({ courseId }) => {
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [viewingAssignment, setViewingAssignment] = useState(null);
+
 
     const fetchAssignments = async () => {
         if (typeof courseId !== "string") return;
@@ -101,6 +107,7 @@ const CourseAssignmentsPage = ({ courseId }) => {
                         loading={assignmentsLoading}
                         error={assignmentsError}
                         onSubmit={handleOpenSubmitModal}
+                         onView={(assignment) => setViewingAssignment(assignment)}
                     />
                 </Animated.View>
             </ScrollView>
@@ -111,6 +118,18 @@ const CourseAssignmentsPage = ({ courseId }) => {
                 submitting={submitting}
                 onClose={() => setModalVisible(false)}
                 onSubmit={handleSubmitAssignment}
+            />
+
+            <AssignmentViewerModal
+                visible={!!viewingAssignment}
+                url={
+                    viewingAssignment?.pdfUrl ||
+                    viewingAssignment?.fileUrl ||
+                    viewingAssignment?.documentUrl ||
+                    viewingAssignment?.url
+                }
+                title={viewingAssignment?.title || "Assignment"}
+                onClose={() => setViewingAssignment(null)}
             />
         </>
     );

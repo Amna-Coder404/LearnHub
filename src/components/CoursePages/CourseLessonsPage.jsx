@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import Animated, {
     FadeIn,
     FadeInDown,
@@ -8,9 +9,9 @@ import Animated, {
     useSharedValue,
     withSpring,
 } from "react-native-reanimated";
-
 import COLORS from "../../constants/color";
 import styles from "../../styles/CourseLessons.style";
+import LessonVideoModal from "./LessonVideoModal";
 
 const PlayButton = ({ onPress, label }) => {
     const scale = useSharedValue(1);
@@ -39,6 +40,7 @@ const CourseLessonsPage = ({ course }) => {
         course?.course?.lessons ||
         course?.data?.lessons ||
         [];
+    const [selectedLesson, setSelectedLesson] = useState(null);
 
     return (
         <ScrollView
@@ -99,7 +101,7 @@ const CourseLessonsPage = ({ course }) => {
                             {lesson.videoUrl && published ? (
                                 <PlayButton
                                     label={`Watch ${title}`}
-                                    onPress={() => Linking.openURL(lesson.videoUrl)}
+                                    onPress={() => setSelectedLesson(lesson)}
                                 />
                             ) : (
                                 <Ionicons
@@ -112,6 +114,12 @@ const CourseLessonsPage = ({ course }) => {
                     );
                 })
             )}
+            <LessonVideoModal
+                visible={!!selectedLesson}
+                videoUrl={selectedLesson?.videoUrl}
+                title={selectedLesson?.title || "Course Lesson"}
+                onClose={() => setSelectedLesson(null)}
+            />
         </ScrollView>
     );
 };
