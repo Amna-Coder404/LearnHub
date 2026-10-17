@@ -5,7 +5,7 @@
 A modern student learning app built with **React Native & Expo**. Access your enrolled courses, manage assignments, submit PDFs, and track your learning — all in one place.
 
 <p align="center">
-  <a href="https://expo.dev/artifacts/eas/5I6IDaAOJvyxv6HnX8rl5SBOmZ2OejewzRyk-yGT-00.apk">
+  <a href="https://expo.dev/artifacts/eas/DQg6tFwFVLkniyeb9-9IwOZN-2gU4DWTmnLx-CCQ2f4.apk">
     <img src="https://img.shields.io/badge/⬇%20DOWNLOAD-ANDROID%20APK-8B5CF6?style=for-the-badge&logo=android&logoColor=white" alt="Download LearnHub APK" />
   </a>
 </p>
